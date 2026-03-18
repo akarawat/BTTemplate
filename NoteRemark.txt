@@ -1,0 +1,6 @@
+เมื่อเริ่ม Project ใหม่ — แก้แค่ 4 จุด:
+1. Constants.cs          → เปลี่ยน AppName
+2. appsettings.json      → ใส่ URL, DB, SSO
+3. UserSessionModel.cs   → เพิ่ม Role fields
+4. LoadUserRoles()       → ปรับ SQL + mapping
+จากนั้นเพิ่ม Controller/View ของ feature ใหม่
