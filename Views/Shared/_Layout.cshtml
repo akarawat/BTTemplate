@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — @(System.Text.Json.JsonSerializer.Deserialize<BTTemplate.Models.UserSessionModel>(Context.Session.GetString("UserSession") ?? "{}")?.ToString() ?? "BTTemplate")</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+@{
+    var sessionJson = Context.Session.GetString("UserSession");
+    BTTemplate.Models.UserSessionModel? userSession = null;
+    if (!string.IsNullOrEmpty(sessionJson))
+        userSession = System.Text.Json.JsonSerializer
+                           .Deserialize<BTTemplate.Models.UserSessionModel>(sessionJson);
+
+    var initials = userSession != null && userSession.FullName.Length > 0
+        ? string.Concat(userSession.FullName.Split(' ').Take(2).Select(w => w[0]))
+        : "?";
+
+    var ctrl   = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+
+    // ── Read app name from config ──────────────────────────────────────
+    var appName = (Context.RequestServices
+                      .GetService<Microsoft.Extensions.Options.IOptions<BTTemplate.Models.AppSettingsModel>>()
+                      ?.Value.AppName) ?? "BTTemplate";
+}
+
+<!-- ── Navbar ───────────────────────────────────────────────────────── -->
+<nav class="navbar-bt d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-1">
+
+        <a class="nav-brand me-3" href="/Dashboards/Index">
+            <i class="bi bi-app-indicator me-2"></i>@appName
+        </a>
+
+        @if (userSession != null)
+        {
+            <!-- Home -->
+            <a class="nav-lnk @(ctrl=="Dashboards" ? "active" : "")"
+               href="/Dashboards/Index">
+                <i class="bi bi-house me-1"></i>Home
+            </a>
+
+            <!-- ── ADD YOUR MENU ITEMS HERE ── -->
+            <!-- Example:
+            <a class="nav-lnk @(ctrl=="YourController" ? "active" : "")"
+               href="/YourController/Index">
+                <i class="bi bi-grid me-1"></i>My Feature
+            </a>
+            -->
+
+            @if (userSession.IsAdmin)
+            {
+                <div class="nav-divider"></div>
+                <a class="nav-lnk admin-lnk @(ctrl=="Admin" ? "active" : "")"
+                   href="/Admin/Index">
+                    <i class="bi bi-shield-check me-1"></i>Admin
+                </a>
+            }
+        }
+    </div>
+
+    @if (userSession != null)
+    {
+        <div class="d-flex align-items-center gap-3">
+            <div class="user-chip">
+                <div class="avatar">@initials</div>
+                <div>
+                    <div class="u-name">@userSession.FullName</div>
+                    <div class="u-dept">
+                        @userSession.Department
+                        @if (userSession.IsAdmin)
+                        {
+                            <span class="admin-badge">Admin</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <a href="/Dashboards/Logout" class="btn-logout">
+                <i class="bi bi-box-arrow-right me-1"></i>Sign Out
+            </a>
+        </div>
+    }
+</nav>
+
+<!-- ── Success / Error Toasts ────────────────────────────────────────── -->
+@if (TempData["SuccessMsg"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show toast-float" role="alert">
+        <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMsg"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMsg"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show toast-float" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMsg"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- ── Page content ──────────────────────────────────────────────────── -->
+<div class="main-content">
+    <div class="container-lg">
+        @RenderBody()
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

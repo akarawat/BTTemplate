@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    var sessionJson = Context.Session.GetString("UserSession");
+    BTTemplate.Models.UserSessionModel? user = null;
+    if (!string.IsNullOrEmpty(sessionJson))
+        user = System.Text.Json.JsonSerializer
+                    .Deserialize<BTTemplate.Models.UserSessionModel>(sessionJson);
+
+    var appName = (Context.RequestServices
+                      .GetService<Microsoft.Extensions.Options.IOptions<BTTemplate.Models.AppSettingsModel>>()
+                      ?.Value.AppName) ?? "BTTemplate";
+}
+
+<!-- Welcome Banner -->
+<div class="welcome-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <h2>Welcome, @(user?.FullName ?? "User") 👋</h2>
+            <p>@(user?.Department) · @(user?.Email)</p>
+        </div>
+        @* Add your primary action button here *@
+        @* <a href="/YourController/Create" class="btn btn-light fw-bold px-4"> *@
+        @*     <i class="bi bi-plus-circle me-2"></i>New Item *@
+        @* </a> *@
+    </div>
+</div>
+
+<!-- ── Quick Actions ──────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <h6 class="fw-bold mb-3 text-muted2"
+            style="font-size:12px;letter-spacing:.6px;text-transform:uppercase">
+            MENU
+        </h6>
+    </div>
+
+    @* ── Add your quick link cards here ───────────────────────────── *@
+    @* Example card:
+    <div class="col-6 col-md-3">
+        <a class="quick-card" href="/YourController/Index">
+            <div class="icon-wrap" style="background:#e8eef9">
+                <i class="bi bi-grid" style="color:#0d47a1"></i>
+            </div>
+            <h6>My Feature</h6>
+            <p>Short description here</p>
+        </a>
+    </div>
+    *@
+
+    @if (user?.IsAdmin == true)
+    {
+        <div class="col-6 col-md-3">
+            <a class="quick-card" href="/Admin/Index">
+                <div class="icon-wrap" style="background:#fce4ec">
+                    <i class="bi bi-shield-check" style="color:#c62828"></i>
+                </div>
+                <h6>Administration</h6>
+                <p>System settings &amp; user management</p>
+            </a>
+        </div>
+    }
+</div>
+
+<!-- ── Session Info (Dev helper — remove in production) ──────────── -->
+@if (System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+{
+    <div class="bt-card" style="border:1px dashed #90a4ae">
+        <h6 class="fw-bold mb-3" style="color:#607080;font-size:12px;letter-spacing:.5px;text-transform:uppercase">
+            <i class="bi bi-info-circle me-2"></i>Dev — Session Info
+        </h6>
+        <table class="table table-sm table-borderless" style="font-size:12px;max-width:500px">
+            <tr><td class="text-muted fw-600">SAM Account</td><td>@user?.SamAcc</td></tr>
+            <tr><td class="text-muted fw-600">Full Name</td><td>@user?.FullName</td></tr>
+            <tr><td class="text-muted fw-600">Email</td><td>@user?.Email</td></tr>
+            <tr><td class="text-muted fw-600">Department</td><td>@user?.Department</td></tr>
+            <tr><td class="text-muted fw-600">IsAdmin</td><td>@user?.IsAdmin</td></tr>
+            <tr><td class="text-muted fw-600">IsUser</td><td>@user?.IsUser</td></tr>
+        </table>
+        <div style="font-size:11px;color:#90a4ae">
+            This panel is visible in Development environment only.
+        </div>
+    </div>
+}
